@@ -190,6 +190,17 @@ def reset():
         recognizer.action_seq = []
     return jsonify({"status": "reset"})
 
+@app.route('/debug')
+def debug():
+    import os
+    return jsonify({
+        "current_dir": os.getcwd(),
+        "root_files": os.listdir('.'),
+        "models_exists": os.path.exists('models'),
+        "models_files": os.listdir('models') if os.path.exists('models') else [],
+        "model_file_exists": os.path.exists('models/best_model.keras')
+    })
+
 if __name__ == '__main__':
     # Production configuration
     port = int(os.environ.get('PORT', 5000))

@@ -21,6 +21,11 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
+# Explicitly ensure models directory is copied
+COPY models/ ./models/
+RUN ls -la models/  # Debug: show what\'s in models folder
+
+
 # Copy requirements first for better caching
 COPY requirements.txt .
 
