@@ -19,7 +19,7 @@ app = Flask(__name__)
 CORS(app)
 
 class ASLRecognizer:
-    def __init__(self, model_path='models/best_model.keras'):
+    def __init__(self, model_path='models/best_model2.keras'):
         self.model_path = model_path
         self.model = None
         self.actions = ['welcome', 'we', 'happy', 'you', 'here', 'today', 'topic', 'c', 't', 'i', 's', 'a', 'l']
