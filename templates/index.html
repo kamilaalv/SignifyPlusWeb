@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignifyPlus - ASL Recognition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header .subtitle {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            opacity: 0.9;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .demo-badge {
+            display: inline-block;
+            background: linear-gradient(45deg, #0d47a1, #1565c0);
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(13, 71, 161, 0.3);
+            animation: pulse 2s infinite;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section h2 {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .video-container {
+            position: relative;
+            background: #0d1421;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        #video {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            transform: scaleX(-1); /* Flip camera horizontally */
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            background: rgba(13, 71, 161, 0.9);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1565c0, #1976d2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #0d47a1, #1565c0);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1976d2, #2196f3);
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #1565c0, #1976d2);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .status.success {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .status.error {
+            background: rgba(13, 71, 161, 0.3);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .status.warning {
+            background: rgba(25, 118, 210, 0.3);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .predictions-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .prediction-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .prediction-item.high-confidence {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+        }
+
+        .prediction-text {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: white;
+        }
+
+        .prediction-confidence {
+            font-size: 0.8em;
+            opacity: 0.8;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .confidence-bar {
+            width: 80px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-left: 10px;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0d47a1, #1565c0, #1976d2);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .demo-video-section {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .demo-video {
+            width: 100%;
+            max-width: 800px;
+            height: 450px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .signs-reference {
+            grid-column: 1 / -1;
+            margin-top: 20px;
+        }
+
+        .signs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .sign-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sign-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .sign-gif {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: rgba(13, 20, 33, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sign-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            color: white;
+        }
+
+        .sign-description {
+            font-size: 0.8em;
+            opacity: 0.8;
+            line-height: 1.3;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .debug-info {
+            background: rgba(13, 20, 33, 0.5);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75em;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2.2em;
+            }
+
+            .demo-video {
+                height: 250px;
+            }
+
+            .signs-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 15px;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .feature-highlight {
+            background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: center;
+            color: white;
+        }
+
+        #stats p {
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        #stats span {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤟 SignifyPlus</h1>
+            <p class="subtitle">Real-time ASL Recognition - Connected to Python Backend</p>
+            <div class="demo-badge">Desktop Prototype Demonstration</div>
+            <div class="feature-highlight">
+                <strong>This is a desktop prototype demonstration of the SignifyPlus mobile app that translates from sign language in real time</strong>
+            </div>
+        </div>
+
+        <div class="demo-video-section section">
+            <h2>📱 SignifyPlus Mobile App Demo</h2>
+            <iframe class="demo-video" 
+                    src="https://www.youtube.com/embed/iFCClF7JPt8?si=k7qOrIcqaZru3oKG" 
+                    title="SignifyPlus Mobile App Demo" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowfullscreen>
+            </iframe>
+        </div>
+
+        <div class="main-content">
+            <div class="section">
+                <h2>📹 Live Camera Feed</h2>
+                
+                <div class="controls">
+                    <button class="btn btn-primary" id="startBtn">Start Camera</button>
+                    <button class="btn btn-danger" id="stopBtn" disabled>Stop Camera</button>
+                    <button class="btn btn-secondary" id="resetBtn">Reset Buffer</button>
+                </div>
+                
+                <div class="status" id="status" style="display: none;"></div>
+                
+                <div class="video-container">
+                    <video id="video" autoplay muted playsinline></video>
+                    <canvas id="canvas" style="display: none;"></canvas>
+                    <div class="video-overlay" id="overlay">
+                        Click "Start Camera" to begin ASL recognition
+                    </div>
+                </div>
+
+                <div class="debug-info" id="debugInfo">
+                    Backend Status: Checking...
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>🎯 Live Predictions</h2>
+                
+                <div class="predictions-container" id="predictions">
+                    <div class="prediction-item">
+                        <span>Waiting for predictions...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📊 Recognition Stats</h2>
+                <div id="stats">
+                    <p><strong>Total Predictions:</strong> <span id="totalPredictions">0</span></p>
+                    <p><strong>High Confidence:</strong> <span id="highConfidence">0</span></p>
+                    <p><strong>Current Session:</strong> <span id="sessionTime">00:00</span></p>
+                    <p><strong>Frames Processed:</strong> <span id="framesProcessed">0</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="signs-reference section">
+            <h2>📚 ASL Signs Reference Guide</h2>
+            <p style="margin-bottom: 15px; opacity: 0.9;">Learn how to perform each sign that our system can recognize. Practice these signs in front of your camera!</p>
+            <div class="usage-tips" style="background: rgba(255, 255, 255, 0.15); padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid rgba(255, 255, 255, 0.2);">
+                <h3 style="color: white; margin-bottom: 10px; font-size: 1.1em;">💡 Recognition Tips</h3>
+                <ul style="color: rgba(255, 255, 255, 0.9); line-height: 1.6; padding-left: 20px;">
+                    <li><strong>Keep moving:</strong> ASL signs are dynamic movements - don't hold static positions</li>
+                    <li><strong>Repeat the signs:</strong> Perform each sign multiple times for better recognition</li>
+                    <li><strong>Follow the guide:</strong> Study the reference videos/images below to learn proper form</li>
+                    <li><strong>Good lighting:</strong> Ensure your hands are well-lit and clearly visible</li>
+                    <li><strong>Center your hands:</strong> Keep your signing space within the camera frame</li>
+                </ul>
+            </div>
+            
+            <div class="signs-grid" id="signsGrid">
+                <!-- Signs will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let video = null;
+        let canvas = null;
+        let ctx = null;
+        let isRecording = false;
+        let predictionInterval = null;
+        let backendUrl = 'http://localhost:5000';
+        let sessionStartTime = null;
+        let totalPredictions = 0;
+        let highConfidencePredictions = 0;
+        let framesProcessed = 0;
+
+        // Sign reference data with your provided URLs
+        const signReference = {
+            'welcome': {
+                description: 'Move your hand in a welcoming gesture',
+                mediaUrl: 'https://youtu.be/-7VlWldG6F8?si=dAwtQ0uW79y6WvaN',
+                type: 'video'
+            },
+            'we': {
+                description: 'Point to yourself then sweep to include others',
+                mediaUrl: 'https://youtu.be/DJU9Vnthfqk?si=fgUfnPJwbevgOcbX',
+                type: 'video'
+            },
+            'happy': {
+                description: 'Brush your chest upward with both hands',
+                mediaUrl: 'https://www.lifeprint.com/asl101/gifs/h/happy.gif',
+                type: 'image'
+            },
+            'you': {
+                description: 'Point directly at the person you\'re addressing',
+                mediaUrl: 'https://youtu.be/JyB2t9Gkzos?si=EKTsDqLz7i44WXoM',
+                type: 'video'
+            },
+            'here': {
+                description: 'Open you palms and move them',
+                mediaUrl: 'https://www.lifeprint.com/asl101/gifs/h/here.gif',
+                type: 'image'
+            },
+            'today': {
+                description: 'Sign NOW then DAY',
+                mediaUrl: 'https://youtu.be/3BxRfKvfnpU',
+                type: 'video'
+            },
+            'topic': {
+                description: 'Show peace sign with both of your hands',
+                mediaUrl: 'https://www.lifeprint.com/asl101/gifs/t/topic.gif',
+                type: 'image'
+            },
+            'c': {
+                description: 'Form the letter C with your hand',
+                mediaUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSzCPt_1whyvzb9nIesPRD0mM0OKJhzLtJdNg&s',
+                type: 'image'
+            },
+            't': {
+                description: 'Form the letter T with your hand',
+                mediaUrl: 'https://www.signingsavvy.com/images/words/alphabet/2/t1.jpg',
+                type: 'image'
+            },
+            'i': {
+                description: 'Form the letter I with your pinky',
+                mediaUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRGnbgDVmz1tuwr0XFWcb778vTFXlb_H8qbDA&s',
+                type: 'image'
+            },
+            's': {
+                description: 'Form the letter S with your fist',
+                mediaUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_RONx69ucRNPSqUxxJxzYn5r6K7DHvlU3kA&s',
+                type: 'image'
+            },
+            'a': {
+                description: 'Form the letter A with your fist and thumb',
+                mediaUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFMTuwnU8-c-pP8LJOJ7nCblAo3QqYsAyHwg&s',
+                type: 'image'
+            },
+            'l': {
+                description: 'Form the letter L with thumb and index finger',
+                mediaUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoPFkPvwH49KunSWiNqoJRjydj5Ei5OC-1cQ&s',
+                type: 'image'
+            }
+        };
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            video = document.getElementById('video');
+            canvas = document.getElementById('canvas');
+            ctx = canvas.getContext('2d');
+            
+            setupEventListeners();
+            checkBackendStatus();
+            loadSignsReference();
+            updateSessionTimer();
+        });
+
+        function setupEventListeners() {
+            document.getElementById('startBtn').onclick = startCamera;
+            document.getElementById('stopBtn').onclick = stopCamera;
+            document.getElementById('resetBtn').onclick = resetBuffer;
+        }
+
+        async function checkBackendStatus() {
+            try {
+                const response = await fetch(`${backendUrl}/api/status`);
+                const data = await response.json();
+                
+                if (data.model_loaded) {
+                    showStatus('✅ Backend connected, model loaded successfully', 'success');
+                } else {
+                    showStatus('⚠️ Backend connected but model not loaded', 'warning');
+                }
+                
+                updateDebugInfo(`Backend: Connected | Model: ${data.model_loaded ? 'Loaded' : 'Not Loaded'} | Actions: ${data.actions.length}`);
+                
+            } catch (error) {
+                showStatus('❌ Cannot connect to backend. Make sure Flask server is running on port 5000', 'error');
+                updateDebugInfo(`Backend: Disconnected | Error: ${error.message}`);
+            }
+        }
+
+        function loadSignsReference() {
+            const grid = document.getElementById('signsGrid');
+            grid.innerHTML = '';
+            
+            Object.entries(signReference).forEach(([sign, data]) => {
+                const card = document.createElement('div');
+                card.className = 'sign-card';
+                
+                let mediaContent;
+                if (data.type === 'video') {
+                    // Extract video ID from YouTube URL for embedding
+                    let videoId = '';
+                    if (data.mediaUrl.includes('youtu.be/')) {
+                        videoId = data.mediaUrl.split('youtu.be/')[1].split('?')[0];
+                    } else if (data.mediaUrl.includes('youtube.com/watch?v=')) {
+                        videoId = data.mediaUrl.split('v=')[1].split('&')[0];
+                    }
+                    
+                    if (videoId) {
+                        mediaContent = `
+                            <iframe class="sign-gif" 
+                                    src="https://www.youtube.com/embed/${videoId}" 
+                                    frameborder="0" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen
+                                    style="width: 100%; height: 120px; border-radius: 8px;">
+                            </iframe>
+                        `;
+                    } else {
+                        mediaContent = `
+                            <div class="sign-gif">
+                                <a href="${data.mediaUrl}" target="_blank" style="color: white; text-decoration: none;">
+                                    📹 Watch Video Guide
+                                </a>
+                            </div>
+                        `;
+                    }
+                } else {
+                    mediaContent = `
+                        <div class="sign-gif">
+                            <img src="${data.mediaUrl}" alt="${sign} sign" 
+                                 style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" 
+                                 onerror="this.style.display='none'; this.parentNode.innerHTML='Image Loading...'" />
+                        </div>
+                    `;
+                }
+                
+                card.innerHTML = `
+                    ${mediaContent}
+                    <div class="sign-name">${sign.toUpperCase()}</div>
+                    <div class="sign-description">${data.description}</div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        async function startCamera() {
+            try {
+                showStatus('🔄 Starting camera...', 'warning');
+                
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: 640, height: 480, facingMode: 'user' }
+                });
+                
+                video.srcObject = stream;
+                
+                video.onloadedmetadata = () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    
+                    isRecording = true;
+                    sessionStartTime = Date.now();
+                    document.getElementById('startBtn').disabled = true;
+                    document.getElementById('stopBtn').disabled = false;
+                    document.getElementById('overlay').textContent = 'Camera active - Show ASL signs';
+                    
+                    showStatus('✅ Camera started successfully!', 'success');
+                    startPredictions();
+                };
+
+            } catch (error) {
+                console.error('Camera error:', error);
+                showStatus(`❌ Camera error: ${error.message}`, 'error');
+            }
+        }
+
+        function stopCamera() {
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+            }
+            
+            if (predictionInterval) {
+                clearInterval(predictionInterval);
+                predictionInterval = null;
+            }
+            
+            isRecording = false;
+            sessionStartTime = null;
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('overlay').textContent = 'Camera stopped';
+            
+            showStatus('⏹️ Camera stopped', 'warning');
+            clearPredictions();
+        }
+
+        function startPredictions() {
+            // Send frames to backend every 200ms
+            predictionInterval = setInterval(async () => {
+                if (isRecording && video.readyState === 4) {
+                    await sendFrameToBackend();
+                }
+            }, 200);
+        }
+
+        async function sendFrameToBackend() {
+            try {
+                // Draw video frame to canvas
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                // Convert to base64
+                const imageData = canvas.toDataURL('image/jpeg', 0.8);
+                
+                // Send to backend
+                const response = await fetch(`${backendUrl}/api/predict`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ image: imageData })
+                });
+                
+                const result = await response.json();
+                
+                if (result.error) {
+                    updateDebugInfo(`Error: ${result.error}`);
+                } else {
+                    updatePredictions(result.predictions);
+                    updateStats(result.predictions);
+                    framesProcessed++;
+                    updateDebugInfo(`Predictions: ${result.predictions.length} | Frames: ${framesProcessed} | Last: ${new Date().toLocaleTimeString()}`);
+                }
+                
+            } catch (error) {
+                console.error('Prediction error:', error);
+                updateDebugInfo(`Prediction Error: ${error.message}`);
+            }
+        }
+
+        function updatePredictions(predictions) {
+            const container = document.getElementById('predictions');
+            container.innerHTML = '';
+            
+            if (!predictions || predictions.length === 0) {
+                container.innerHTML = '<div class="prediction-item"><span>No predictions</span></div>';
+                return;
+            }
+            
+            // Sort by confidence
+            predictions.sort((a, b) => b.confidence - a.confidence);
+            
+            predictions.forEach((pred, index) => {
+                const confidencePercent = Math.round(pred.confidence * 100);
+                const isHighConfidence = pred.confidence > 0.7;
+                
+                const item = document.createElement('div');
+                item.className = `prediction-item ${isHighConfidence ? 'high-confidence' : ''}`;
+                
+                item.innerHTML = `
+                    <div>
+                        <div class="prediction-text">${pred.action.toUpperCase()} ${index === 0 && isHighConfidence ? '🎯' : ''}</div>
+                        <div class="prediction-confidence">${confidencePercent}% confidence</div>
+                    </div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: ${confidencePercent}%"></div>
+                    </div>
+                `;
+                
+                container.appendChild(item);
+            });
+        }
+
+        function updateStats(predictions) {
+            if (predictions && predictions.length > 0) {
+                totalPredictions++;
+                const hasHighConfidence = predictions.some(p => p.confidence > 0.7);
+                if (hasHighConfidence) {
+                    highConfidencePredictions++;
+                }
+            }
+            
+            document.getElementById('totalPredictions').textContent = totalPredictions;
+            document.getElementById('highConfidence').textContent = highConfidencePredictions;
+            document.getElementById('framesProcessed').textContent = framesProcessed;
+        }
+
+        function updateSessionTimer() {
+            setInterval(() => {
+                if (sessionStartTime) {
+                    const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+                    const minutes = Math.floor(elapsed / 60);
+                    const seconds = elapsed % 60;
+                    document.getElementById('sessionTime').textContent = 
+                        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+            }, 1000);
+        }
+
+        async function resetBuffer() {
+            try {
+                await fetch(`${backendUrl}/api/reset`);
+                showStatus('🔄 Sequence buffer reset', 'success');
+                clearPredictions();
+                totalPredictions = 0;
+                highConfidencePredictions = 0;
+                framesProcessed = 0;
+                updateStats([]);
+            } catch (error) {
+                showStatus('❌ Failed to reset buffer', 'error');
+            }
+        }
+
+        function clearPredictions() {
+            const container = document.getElementById('predictions');
+            container.innerHTML = '<div class="prediction-item"><span>Waiting for predictions...</span></div>';
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function updateDebugInfo(message) {
+            const debugInfo = document.getElementById('debugInfo');
+            const timestamp = new Date().toLocaleTimeString();
+            debugInfo.textContent = `[${timestamp}] ${message}`;
+        }
+
+        // Handle page visibility
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden && predictionInterval) {
+                clearInterval(predictionInterval);
+            } else if (!document.hidden && isRecording) {
+                startPredictions();
+            }
+        });
+    </script>
+</body>
+</html>
