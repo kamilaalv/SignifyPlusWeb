@@ -138,13 +138,16 @@ class ASLRecognizer:
 # Initialize recognizer
 recognizer = ASLRecognizer()
 
-# ===== FRONTEND ROUTE (THIS WAS MISSING!) =====
 @app.route('/')
 def index():
     """Serve the main page"""
-    return render_template('templates/index.html')
+    return render_template('index.html')
 
-# ===== API ROUTES =====
+@app.route('/health')
+def health():
+    """Health check endpoint"""
+    return jsonify({"status": "healthy", "model_loaded": recognizer.model is not None})
+
 @app.route('/api/status')
 def status():
     """Check if model is loaded and ready"""
@@ -188,6 +191,7 @@ def reset():
     return jsonify({"status": "reset"})
 
 if __name__ == '__main__':
-    # Production configuration for Railway
+    # Production configuration
     port = int(os.environ.get('PORT', 5000))
-    app.run(debug=False, host='0.0.0.0', port=port)
+    debug = os.environ.get('FLASK_ENV') == 'development'
+    app.run(debug=debug, host='0.0.0.0', port=port)
