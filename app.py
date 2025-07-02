@@ -200,7 +200,7 @@ def debug():
         "templates_files": os.listdir('templates') if os.path.exists('templates') else [],
         "models_exists": os.path.exists('models'),
         "models_files": os.listdir('models') if os.path.exists('models') else [],
-        "model_file_exists": os.path.exists('models/best_model.keras')
+        "model_file_exists": os.path.exists('models/best_model2.keras')
     })
 
 if __name__ == '__main__':
