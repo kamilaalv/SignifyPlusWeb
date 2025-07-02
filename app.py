@@ -195,7 +195,9 @@ def debug():
     import os
     return jsonify({
         "current_dir": os.getcwd(),
-        "root_files": os.listdir('.'),
+        "files_in_root": os.listdir('.'),
+        "templates_exists": os.path.exists('templates'),
+        "templates_files": os.listdir('templates') if os.path.exists('templates') else [],
         "models_exists": os.path.exists('models'),
         "models_files": os.listdir('models') if os.path.exists('models') else [],
         "model_file_exists": os.path.exists('models/best_model.keras')
